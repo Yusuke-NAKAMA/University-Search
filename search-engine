@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<title>留学先条件検索</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
+
+<style>
+  body {
+    font-family: 'Noto Sans JP', 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ffffffff, #ffffffff);
+    margin: 0;
+    padding: 0;
+  }
+
+  .form-container {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 1.5rem 1.5rem 2rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  label {
+    font-weight: 700;
+    display: block;
+    margin-top: 1.3rem;
+    font-size: 1rem;
+    color: #333;
+  }
+
+  select {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    margin-top: 0.4rem;
+    border-radius: 12px;
+    border: 2px solid #5a8dee;
+    font-size: 1rem;
+    background: white;
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, #5a8dee 50%),
+      linear-gradient(135deg, #5a8dee 50%, transparent 50%);
+    background-position:
+      calc(100% - 20px) calc(1em + 2px),
+      calc(100% - 15px) calc(1em + 2px);
+    background-size: 5px 5px;
+    background-repeat: no-repeat;
+    cursor: pointer;
+  }
+  select:focus {
+    outline: none;
+    border-color: #4178d4;
+    box-shadow: 0 0 5px #4178d4aa;
+  }
+
+  button {
+    margin-top: 2rem;
+    width: 100%;
+    padding: 0.85rem 0;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(90deg, #00a2ffff, #0911eeff);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  button:hover {
+    transform: scale(1.05);
+  }
+
+  /* 結果画面のレイアウト */
+  #result-screen {
+    display: none; 
+    box-sizing: border-box;
+    min-height: 100vh;
+    background: #fff;
+    transition: opacity 0.5s ease;
+    opacity: 0; 
+  }
+
+  #result-screen.show {
+    display: flex; 
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20vw;
+    opacity: 1;
+  }
+
+  .result-title {
+    color: #1E90FF;
+    font-size: 1.8em;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+  .no-result {
+    color: #1E90FF;
+    font-size: 1.5em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 12px;
+    width: 100%;
+  }
+  .recommend-title {
+    background: linear-gradient(90deg, #5f7fffff, #7b8cfeff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.4em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 16px;
+    width: 100%;
+  }
+
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* PCは3列 */
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1rem 0;
+  justify-items: center;
+  box-sizing: border-box;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.card-container.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card {
+  width: 100%;
+  max-width: 260px; /* 3列でも十分大きく見える */
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+  text-align: center;
+  text-decoration: none;
+  color: #333;
+  overflow: hidden;
+  transform: scale(0.95);
+  transition: transform 0.4s cubic-bezier(0.25, 1.25, 0.5, 1), box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.05) translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+}
+
+.card img {
+  width: 100%;
+  height: 160px; /* 少し大きめで見栄え良く */
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.card:hover img {
+  transform: scale(1.1);
+}
+
+.card h3 {
+  margin: 0.5rem 0 1rem 0;
+  font-size: 0.9rem; /* 少し控えめ */
+  color:#333;
+}
+
+/* レスポンシブ: スマホは2列に */
+@media screen and (max-width: 768px) {
+  .card-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card img {
+    height: 140px; /* スマホ用に少し小さく */
+  }
+
+  .card h3 {
+    font-size: 0.95rem; /* スマホ用に少し小さめ */
+  }
+}
+
+
+  .back-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #1E90FF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: auto;
+    align-self: center;
+    transition: background-color 0.3s ease;
+  }
+  .back-btn:hover {
+    background-color: #145ea8;
+  }
+  input[type="checkbox"] {
+    transform: scale(1.5); 
+    margin-right: 6px;
+    cursor: pointer; 
+    accent-color: #0078d7;
+  }
+  #strength-options input[type="checkbox"] {
+    transform: scale(1.3); 
+    margin-right: 5px;
+    cursor: pointer;
+  }
+
+  #strength-options label {
+    display: inline-flex; 
+    align-items: center; 
+    margin-bottom: 5px; 
+  }
+</style>
+</head>
+<body>
+<div id="search-screen">
+  <div class="form-container">
+    <label>留学時の所属</label>
+    <select id="grade">
+      <option value="" selected>選択してください</option>
+      <option value="undergrad">学部生</option>
+      <option value="master">修士課程</option>
+      <option value="phd">博士課程</option>
+    </select>
+    
+    <label>留学したい地域を教えてください</label>
+    <select id="region" onchange="showCountrySelect()">
+      <option value="" selected>選択してください</option>
+      <option value="asia">アジア</option>
+      <option value="south-america">南アメリカ</option>
+      <option value="latin-america">中南米</option>
+      <option value="middle-east">中東</option>
+      <option value="africa">アフリカ</option>
+      <option value="north-america">北アメリカ</option>
+      <option value="oceania">オセアニア</option>
+      <option value="europe">ヨーロッパ</option>
+    </select>
+
+    <div id="country-container" style="display:none;">
+      <label>留学したい国を教えてください</label>
+      <select id="country">
+        <option value="" selected>選択してください</option>
+      </select>
+    </div>
+
+    <div>
+      <label>
+        <input type="checkbox" id="enableStrengthSearch" onchange="toggleStrengthOptions()">
+        大学の強みから絞り込む
+      </label>
+    </div>
+
+    <div id="strength-options" style="display:none; margin-left: 20px;">
+      <label><input type="checkbox" class="strength" value="engineering"> 工学系に強い</label><br>
+      <label><input type="checkbox" class="strength" value="aerospace"> 航空宇宙系に強い</label><br>
+      <label><input type="checkbox" class="strength" value="international"> 国際関係論に強い</label>
+    </div>
+
+    <button onclick="searchUniversities()">検索</button>
+  </div>
+</div>
+
+<div id="result-screen">
+  <div id="results"></div>
+</div>
+
+<script>
+const countriesByRegion = {
+    asia: ["台湾", "バングラデシュ", "中国本土", "香港特別行政区", "インド", "インドネシア", "韓国", "マレーシア","フィリピン","シンガポール","タイ"],
+    "south-america": ["ブラジル","チリ"],
+    "latin-america": ["メキシコ"],
+    "middle-east": ["イスラエル", "トルコ"],
+    africa: ["南アフリカ"],
+    "north-america": ["アメリカ合衆国", "カナダ"],
+    oceania: ["オーストラリア", "ニュージーランド"],
+    europe: ["デンマーク","フィンランド", "フランス", "ドイツ", "アイルランド", "イタリア", "オランダ", "ロシア", "スペイン", "スウェーデン", "スイス", "イギリス" ]
+};
+
+function showCountrySelect() {
+  const region = document.getElementById("region").value;
+  const countrySelect = document.getElementById("country");
+  if (region && countriesByRegion[region]) {
+    document.getElementById("country-container").style.display = "block";
+    countrySelect.innerHTML = '<option value="" selected>選択してください</option>';
+    countriesByRegion[region].forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c;
+      countrySelect.appendChild(opt);
+    });
+  } else {
+    document.getElementById("country-container").style.display = "none";
+  }
+}
+
+function toggleStrengthOptions() {
+  const enabled = document.getElementById("enableStrengthSearch").checked;
+  document.getElementById("strength-options").style.display = enabled ? "block" : "none";
+}
+
+const universities = [
+    {name: "国立陽明交通大学", grade: "", region: "asia", country: "台湾", strengths: ["engineering"], img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "国立台湾大学", grade: "", region: "asia", country: "台湾", strengths: ["engineering"], img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "アジア女性大学（AUW）", grade: "undergrad", region: "asia",country: "バングラデシュ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "上海交通大学", grade:  ["undergrad", "master"], region: "asia",country: "中国本土" ,img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "精華大学", grade: "", region: "asia", country: "中国本土" ,img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "浙江大学", grade: "", region: "asia",country: "中国本土" , img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "南開大学", grade: "", region: "asia", country: "中国本土" ,img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "南京大学", grade: "undergrad", region: "asia", country: "中国本土" ,img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "復旦大学", grade: "undergrad", region: "asia",country: "中国本土" , img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "北京大学", grade: "", region: "asia", country: "中国本土" ,img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "香港大学", grade: "undergrad", region: "asia",country: "香港特別行政区" , img: "https://drive.google.com/uc?export=view&id=1Ak0PL2rp9GqgiR-St6qa2MF4jLYKSWzW", url: "#"},
+    {name: "香港科技大学", grade: "undergrad", region: "asia",country: "香港特別行政区" , img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "O.Pジンダル・グローバル大学", grade: "undergrad", region: "asia", country: "インド",img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "インドネシア大学", grade: "undergrad", region: "asia", country: "インドネシア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ガジャマダ大学", grade: ["undergrad", "master"], region: "asia",country: "インドネシア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "高麗大学校（Korea University）", grade: ["undergrad", "master"], region: "asia",country: "韓国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ソウル大学校", grade: "", region: "asia",country: "韓国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "浦項工科大学校（POSTECH）", grade: "", region: "asia",country: "韓国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "延世大学校", grade: "", region: "asia",country: "韓国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "マラヤ大学", grade: ["undergrad", "master"], region: "asia",country: "マレーシア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "フィリピン大学", grade: ["undergrad", "master"], region: "asia", country: "フィリピン",img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "シンガポール国立大学（National University of Singapore）", grade: "undergrad", region: "asia",country: "シンガポール", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "シンガポールマネジメント大学", grade: "undergrad", region: "asia",country: "シンガポール", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ナンヤン工科大学", grade: "", region: "asia",country: "シンガポール", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "チュラロンコン大学", grade: "", region: "asia",country: "タイ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "サンパウロ大学", grade: "", region: "south-america",country: "ブラジル", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "チリ大学", grade: ["undergrad", "master"], region: "south-america",country: "チリ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "チリ・カトリック大学", grade: ["undergrad", "master"], region: "south-america",country: "チリ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "エル・コレヒオ・デ・メヒコ", grade: "", region: "latin-america",country: "メキシコ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "メキシコ国立自治大学", grade: "", region: "latin-america",country: "メキシコ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "エルサレム・ヘブライ大学", grade: "", region: "middle-east",country: "イスラエル", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ボアジチ（ボスフォラス）大学", grade: "", region: "middle-east",country: "トルコ", img: "https://via.placeholder.com/400x200", url: "#"},    
+    {name: "ステレンボッシュ大学", grade: "", region: "africa",country: "南アフリカ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "トロント大学", grade: "", region: "north-america",country: "カナダ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ビクトリア大学", grade: "undergrad", region: "north-america",country: "カナダ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ブリティッシュ・コロンビア大学", grade: "", region: "north-america",country: "カナダ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "マギル大学", grade: "undergrad", region: "north-america",country: "カナダ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "イェール大学", grade: ["phd", "master"], region: "north-america",country: "アメリカ合衆国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "イリノイ大学アーバナ・シャンペーン校", grade: "undergrad", region: "north-america",country: "アメリカ合衆国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "カリフォルニア大学サンタクルーズ校", grade: "", region: "north-america",country: "アメリカ合衆国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ジョンズ・ホプキンス大学", grade: "undergrad", region: "north-america",country: "アメリカ合衆国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "スウァスモアカレッジ", grade: "undergrad", region: "north-america",country: "アメリカ合衆国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ノースイースタン大学", grade: "undergrad", region: "north-america",country: "アメリカ合衆国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ノースウェスタン大学", grade: "undergrad", region: "north-america",country: "アメリカ合衆国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "プリンストン大学", grade: "", region: "north-america",country: "アメリカ合衆国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ワシントン大学", grade: "undergrad", region: "north-america",country: "アメリカ合衆国", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "アデレード大学", grade: ["undergrad", "master"], region: "oceania",country: "オーストラリア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "オーストラリア国立大学", grade: "undergrad", region: "oceania",country: "オーストラリア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "クィーンズランド大学", grade: ["undergrad", "master"], region: "oceania",country: "オーストラリア" ,img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "シドニー大学", grade:  ["undergrad", "master"], region: "oceania",country: "オーストラリア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ニューサウスウェールズ大学", grade: "", region: "oceania",country: "オーストラリア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "メルボルン大学", grade: "", region: "oceania",country: "オーストラリア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "モナシュ大学", grade: ["undergrad", "master"], region: "oceania",country: "オーストラリア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "オークランド大学", grade: ["undergrad", "master"], region: "oceania",country: "ニュージーランド", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "オタゴ大学", grade: ["undergrad", "master"], region: "oceania",country: "ニュージーランド", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "コペンハーゲン大学", grade: ["undergrad", "master"], region: "europe",country: "デンマーク", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ヘルシンキ大学", grade: ["undergrad", "master"], region: "europe",country: "フィンランド", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "エコール・ポリテクニーク", grade: ["undergrad", "master"], region: "europe",country: "フランス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "グルノーブル・アルプ大学", grade: ["undergrad", "master"], region: "europe",country: "フランス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "EHESS（社会科学高等研究院）", grade: ["phd", "master"], region: "europe",country: "フランス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ストラスブール大学", grade: "", region: "europe",country: "フランス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "パリ政治学院", grade: ["undergrad", "master"], region: "europe",country: "フランス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ケルン大学", grade: "", region: "europe",country: "ドイツ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ベルリン自由大学", grade: "", region: "europe",country: "ドイツ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ボン大学", grade: ["undergrad", "master"], region: "europe",country: "ドイツ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ミュンヘン・ルートヴィヒ゠マクシミリアン大学", grade: "", region: "europe",country: "ドイツ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "トリニティ・カレッジ・ダブリン", grade: "", region: "europe",country: "アイルランド", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ユニバーシティ・カレッジ・ダブリン", grade: "", region: "europe",country: "アイルランド", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ローマ大学ラ・サピエンツァ", grade: "", region: "europe",country: "イタリア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "フローニンゲン大学", grade: ["undergrad", "master"], region: "europe",country: "オランダ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ライデン大学", grade: ["undergrad", "master"], region: "europe",country: "オランダ", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "サンクトペテルブルク大学", grade: "", region: "europe",country: "ロシア", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "マドリード自治大学", grade: "", region: "europe",country: "スペイン", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ウプサラ大学", grade: "", region: "europe",country: "スウェーデン", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "スウェーデン王立工科大学", grade: "", region: "europe",country: "スウェーデン", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ストックホルム大学", grade: "", region: "europe",country: "スウェーデン", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ルンド大学", grade: ["undergrad", "master"], region: "europe",country: "スウェーデン", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ジュネーヴ大学", grade: "", region: "europe",country: "スイス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "スイス連邦工科大学チューリッヒ", grade: "", region: "europe",country: "スイス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "チューリッヒ大学", grade: "", region: "europe",country: "スイス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ウォーリック大学", grade: "undergrad", region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "エセクター大学", grade: "undergrad", region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "グラスゴー大学", grade: ["undergrad", "master"], region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "サウサンプトン大学", grade: "undergrad", region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "シェフィールド大学", grade: "undergrad", region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ダラム大学", grade: "undergrad", region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "マンチェスター大学", grade: "undergrad", region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ユニバーシティ・カレッジ・ロンドン", grade: ["undergrad", "master"], region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ロンドン大学東洋アフリカ学院", grade: ["undergrad", "master"], region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+    {name: "ロンドン・スクール・オブ・エコノミクス・アンド・ポリティカル・サイエンス", grade: "undergrad", region: "europe",country: "イギリス", img: "https://via.placeholder.com/400x200", url: "#"},
+ ];
+
+function shuffleArray(arr) {
+  let array = arr.slice();
+  for (let i = array.length -1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function searchUniversities() {
+  const grade = document.getElementById("grade").value;
+  const region = document.getElementById("region").value;
+  const country = document.getElementById("country").value;
+  const enableStrength = document.getElementById("enableStrengthSearch").checked;
+  const selectedStrengths = enableStrength ? Array.from(document.querySelectorAll(".strength:checked")).map(cb => cb.value) : [];
+
+  const filtered = universities.filter(u => {
+    const gradeMatch = grade === "" || u.grade === "" || (Array.isArray(u.grade) ? u.grade.includes(grade) : u.grade === grade);
+    const regionMatch = region === "" || u.region === "" || u.region === region;
+    const countryMatch = country === "" || u.country === "" || u.country === country;
+    const strengthMatch = !enableStrength || selectedStrengths.every(str => u.strengths.includes(str));
+    return gradeMatch && regionMatch && countryMatch && strengthMatch;
+  });
+
+  showResults(filtered, universities);
+}
+
+function showResults(filtered, universities) {
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "";
+
+  if (filtered.length > 0) {
+    const title = document.createElement("div");
+    title.className = "result-title";
+    title.textContent = "あなたにぴったりの大学が見つかりました！";
+    resultsDiv.appendChild(title);
+
+    const cardContainer = document.createElement("div");
+    cardContainer.className = "card-container";
+
+    filtered.forEach(u => {
+      const card = document.createElement("a");
+      card.href = u.url;
+      card.target = "_blank";
+      card.rel = "noopener noreferrer";
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${u.img}" alt="${u.name}">
+        <h3>${u.name}</h3>
+      `;
+      cardContainer.appendChild(card);
+    });
+
+    resultsDiv.appendChild(cardContainer);
+    // フェードインアニメーション
+    setTimeout(() => cardContainer.classList.add("show"), 50);
+
+  } else {
+    const noResultText = document.createElement("div");
+    noResultText.className = "no-result";
+    noResultText.textContent = "条件を満たす大学が見つかりませんでした。";
+    resultsDiv.appendChild(noResultText);
+
+    const recommendText = document.createElement("div");
+    recommendText.className = "recommend-title";
+    recommendText.textContent = "こちらの大学もおすすめです";
+    resultsDiv.appendChild(recommendText);
+
+    const shuffled = shuffleArray(universities);
+    const recommendUniversities = shuffled.slice(0,6);
+
+    const cardContainer = document.createElement("div");
+    cardContainer.className = "card-container";
+
+    recommendUniversities.forEach(u => {
+      const card = document.createElement("a");
+      card.href = u.url;
+      card.target = "_blank";
+      card.rel = "noopener noreferrer";
+      card.className = "card";
+      card.innerHTML = `
+        <img src="${u.img}" alt="${u.name}">
+        <h3>${u.name}</h3>
+      `;
+      cardContainer.appendChild(card);
+    });
+
+    resultsDiv.appendChild(cardContainer);
+    setTimeout(() => cardContainer.classList.add("show"), 50);
+  }
+
+  const backBtn = document.createElement("button");
+  backBtn.className = "back-btn";
+  backBtn.textContent = "戻る";
+  backBtn.onclick = () => {
+    document.getElementById("result-screen").classList.remove("show");
+    document.getElementById("search-screen").style.display = "block";
+  };
+  resultsDiv.appendChild(backBtn);
+
+  document.getElementById("search-screen").style.display = "none";
+  document.getElementById("result-screen").classList.add("show");
+}
+
+</script>
+</body>
+</html>
