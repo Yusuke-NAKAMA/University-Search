@@ -172,6 +172,41 @@
   color:#333;
 }
 
+/* 共通のチップスタイル */
+.chip {
+  display: inline-block;
+  margin: 0.3rem;
+  cursor: pointer;
+}
+
+.chip input[type="checkbox"] {
+  display: none; /* チェックボックスは隠す */
+}
+
+.chip span {
+  display: inline-block;
+  padding: 0.45rem 1rem;
+  font-size: 0.72rem;
+  border-radius: 999px; /* pill型 */
+  border: 1.8px solid #5a8dee;
+  background: #fff;
+  color: #5a8dee;
+  font-weight: 500;
+  transition: all 0.25s ease;
+}
+
+/* hover時 */
+.chip:hover span {
+  background: #eef4ff;
+}
+
+/* 選択状態 */
+.chip input[type="checkbox"]:checked + span {
+  background: #5a8dee;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(90, 141, 238, 0.35);
+}
+
 /* レスポンシブ: スマホは2列に */
 @media screen and (max-width: 768px) {
   .card-container {
@@ -221,12 +256,29 @@
     align-items: center; 
     margin-bottom: 5px; 
   }
+
+
+  #country-container {
+    display: none;
+  }
+
+  .error-msg {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: none; /* 初期は非表示 */
+}
+
 </style>
 </head>
+
+
+
 <body>
 <div id="search-screen">
   <div class="form-container">
-    <label>留学時の所属</label>
+    <label>留学時の所属課程</label>
+    <div id="grade-error" class="error-msg"></div>
     <select id="grade">
       <option value="" selected>選択してください</option>
       <option value="undergrad">学部生</option>
@@ -234,38 +286,58 @@
       <option value="phd">博士課程</option>
     </select>
     
-    <label>留学したい地域を教えてください</label>
-    <select id="region" onchange="showCountrySelect()">
-      <option value="" selected>選択してください</option>
-      <option value="asia">アジア</option>
-      <option value="south-america">南アメリカ</option>
-      <option value="latin-america">中南米</option>
-      <option value="middle-east">中東</option>
-      <option value="africa">アフリカ</option>
-      <option value="north-america">北アメリカ</option>
-      <option value="oceania">オセアニア</option>
-      <option value="europe">ヨーロッパ</option>
-    </select>
+    <!-- 地域 -->
+<label>留学したい地域から絞り込む</label>
+<div id="region-error" class="error-msg"></div>
+<div class="region-section">
+  <div id="region-options">
+    <label class="chip"><input type="checkbox" class="region" value="asia"><span>アジア</span></label>
+    <label class="chip"><input type="checkbox" class="region" value="south-america"><span>南アメリカ</span></label>
+    <label class="chip"><input type="checkbox" class="region" value="latin-america"><span>中南米</span></label>
+    <label class="chip"><input type="checkbox" class="region" value="middle-east"><span>中東</span></label>
+    <label class="chip"><input type="checkbox" class="region" value="africa"><span>アフリカ</span></label>
+    <label class="chip"><input type="checkbox" class="region" value="north-america"><span>北アメリカ</span></label>
+    <label class="chip"><input type="checkbox" class="region" value="oceania"><span>オセアニア</span></label>
+    <label class="chip"><input type="checkbox" class="region" value="europe"><span>ヨーロッパ</span></label>
+  </div>
+</div>
 
-    <div id="country-container" style="display:none;">
-      <label>留学したい国を教えてください</label>
-      <select id="country">
-        <option value="" selected>選択してください</option>
-      </select>
-    </div>
+<!-- 国 -->
+<div id="country-container">
+  <label>留学したい国から絞り込む</label>
+  <div id="country-error" class="error-msg"></div>
+  <div id="country-options">
+    <!-- 地域選択に応じてここに国リストを動的に追加 -->
+  </div>
+</div>
 
-    <div>
-      <label>
-        <input type="checkbox" id="enableStrengthSearch" onchange="toggleStrengthOptions()">
-        大学の強みから絞り込む
-      </label>
-    </div>
 
-    <div id="strength-options" style="display:none; margin-left: 20px;">
-      <label><input type="checkbox" class="strength" value="engineering"> 工学系に強い</label><br>
-      <label><input type="checkbox" class="strength" value="aerospace"> 航空宇宙系に強い</label><br>
-      <label><input type="checkbox" class="strength" value="international"> 国際関係論に強い</label>
-    </div>
+
+<label>大学の強みから絞り込む
+    (現在試作版のため、全ての大学を「工学系に強い」として処理しています）</label>
+<div id="strength-error" class="error-msg"></div>
+<div class="strength-section">
+  <div id="strength-options">
+
+    <!-- 個別強み -->
+    <label class="chip">
+      <input type="checkbox" class="strength" value="engineering">
+      <span>工学系に強い</span>
+    </label>
+    <label class="chip">
+      <input type="checkbox" class="strength" value="aerospace">
+      <span>航空宇宙系に強い</span>
+    </label>
+    <label class="chip">
+      <input type="checkbox" class="strength" value="international">
+      <span>国際関係論に強い</span>
+    </label>
+  </div>
+</div>
+
+
+
+
 
     <button onclick="searchUniversities()">検索</button>
   </div>
@@ -277,14 +349,14 @@
 
 <script>
 const countriesByRegion = {
-    asia: ["🇹🇼台湾", "🇧🇩バングラデシュ", "🇨🇳中国本土", "🇭🇰香港特別行政区", "🇮🇳インド", "🇮🇩インドネシア", "🇰🇷韓国", "🇲🇾マレーシア","🇵🇭フィリピン","🇸🇬シンガポール","🇹🇭タイ"],
-    "south-america": ["🇧🇷ブラジル","🇨🇱チリ"],
-    "latin-america": ["🇲🇽メキシコ"],
-    "middle-east": ["🇮🇱イスラエル", "🇹🇷トルコ"],
-    africa: ["🇿🇦南アフリカ"],
-    "north-america": ["🇺🇸アメリカ合衆国", "🇨🇦カナダ"],
-    oceania: ["🇦🇺オーストラリア", "🇳🇿ニュージーランド"],
-    europe: ["🇩🇰デンマーク","🇫🇮フィンランド", "🇫🇷フランス", "🇩🇪ドイツ", "🇮🇪アイルランド", "🇮🇹イタリア", "🇳🇱オランダ", "🇷🇺ロシア", "🇪🇸スペイン", "🇸🇪スウェーデン", "🇨🇭スイス", "🇬🇧イギリス" ]
+    "asia": ["🇹🇼台湾", "🇧🇩バングラデシュ", "🇨🇳中国本土", "🇭🇰香港特別行政区", "🇮🇳インド", "🇮🇩インドネシア", "🇰🇷韓国", "🇲🇾マレーシア","🇵🇭フィリピン","🇸🇬シンガポール","🇹🇭タイ"],
+    "south-america" : ["🇧🇷ブラジル","🇨🇱チリ"],
+    "latin-america" : ["🇲🇽メキシコ"],
+    "middle-east" : ["🇮🇱イスラエル", "🇹🇷トルコ"],
+    "africa" : ["🇿🇦南アフリカ"],
+    "north-america" : ["🇺🇸アメリカ合衆国", "🇨🇦カナダ"],
+    "oceania" : ["🇦🇺オーストラリア", "🇳🇿ニュージーランド"],
+    "europe" : ["🇩🇰デンマーク","🇫🇮フィンランド", "🇫🇷フランス", "🇩🇪ドイツ", "🇮🇪アイルランド", "🇮🇹イタリア", "🇳🇱オランダ", "🇷🇺ロシア", "🇪🇸スペイン", "🇸🇪スウェーデン", "🇨🇭スイス", "🇬🇧イギリス" ]
 };
 
 function showCountrySelect() {
@@ -310,96 +382,96 @@ function toggleStrengthOptions() {
 }
 
 const universities = [
-    {name: "国立陽明交通大学", grade: "", region: "asia", country: "🇹🇼台湾", strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "国立台湾大学", grade: "", region: "asia", country: "🇹🇼台湾", strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "アジア女性大学（AUW）", grade: "undergrad", region: "asia",country: "🇧🇩バングラデシュ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "上海交通大学", grade:  ["undergrad", "master"], region: "asia",country: "🇨🇳中国本土" ,img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "精華大学", grade: "", region: "asia", country: "🇨🇳中国本土" ,img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "浙江大学", grade: "", region: "asia",country: "🇨🇳中国本土" , img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "南開大学", grade: "", region: "asia", country: "🇨🇳中国本土" ,img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "南京大学", grade: "undergrad", region: "asia", country: "🇨🇳中国本土" ,img: "https://yusuke-nakama.github.io/University-Search/Nanjing.jpg", url: "#"},
-    {name: "復旦大学", grade: "undergrad", region: "asia",country: "🇨🇳中国本土" , img: "https://yusuke-nakama.github.io/University-Search/Fudan.jpg", url: "#"},
-    {name: "北京大学", grade: "", region: "asia", country: "🇨🇳中国本土" ,img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "香港大学", grade: "undergrad", region: "asia",country: "🇭🇰香港特別行政区" , img: "https://yusuke-nakama.github.io/University-Search/HKU.jpg", url: "#"},
-    {name: "香港科技大学", grade: "undergrad", region: "asia",country: "🇭🇰香港特別行政区" , img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "O.Pジンダル・グローバル大学", grade: "undergrad", region: "asia", country: "🇮🇳インド",img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "インドネシア大学", grade: "undergrad", region: "asia", country: "🇮🇩インドネシア", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ガジャマダ大学", grade: ["undergrad", "master"], region: "asia",country: "🇮🇩インドネシア", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "高麗大学校（Korea University）", grade: ["undergrad", "master"], region: "asia",country: "🇰🇷韓国", img: "https://yusuke-nakama.github.io/University-Search/Korea.jpg", url: "#"},
-    {name: "ソウル大学校", grade: "", region: "asia",country: "🇰🇷韓国", img: "https://yusuke-nakama.github.io/University-Search/SNU.jpg", url: "#"},
-    {name: "浦項工科大学校（POSTECH）", grade: "", region: "asia",country: "🇰🇷韓国", img: "https://yusuke-nakama.github.io/University-Search/POSTECH.jpg", url: "#"},
-    {name: "延世大学校", grade: "", region: "asia",country: "🇰🇷韓国", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "マラヤ大学", grade: ["undergrad", "master"], region: "asia",country: "🇲🇾マレーシア", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "フィリピン大学", grade: ["undergrad", "master"], region: "asia", country: "🇵🇭フィリピン",img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "シンガポール国立大学（National University of Singapore）", grade: "undergrad", region: "asia",country: "🇸🇬シンガポール", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "シンガポールマネジメント大学", grade: "undergrad", region: "asia",country: "🇸🇬シンガポール", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ナンヤン工科大学", grade: "", region: "asia",country: "🇸🇬シンガポール", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "チュラロンコン大学", grade: "", region: "asia",country: "🇹🇭タイ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "サンパウロ大学", grade: "", region: "south-america",country: "🇧🇷ブラジル", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "チリ大学", grade: ["undergrad", "master"], region: "south-america",country: "🇨🇱チリ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "チリ・カトリック大学", grade: ["undergrad", "master"], region: "south-america",country: "🇨🇱チリ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "エル・コレヒオ・デ・メヒコ", grade: "", region: "latin-america",country: "🇲🇽メキシコ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "メキシコ国立自治大学", grade: "", region: "latin-america",country: "🇲🇽メキシコ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "エルサレム・ヘブライ大学", grade: "", region: "middle-east",country: "🇮🇱イスラエル", img: "https://yusuke-nakama.github.io/University-Search/HUJ.jpg", url: "#"},
-    {name: "ボアジチ（ボスフォラス）大学", grade: "", region: "middle-east",country: "🇹🇷トルコ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},    
-    {name: "ステレンボッシュ大学", grade: "", region: "africa",country: "🇿🇦南アフリカ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "トロント大学", grade: "", region: "north-america",country: "🇨🇦カナダ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ビクトリア大学", grade: "undergrad", region: "north-america",country: "🇨🇦カナダ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ブリティッシュ・コロンビア大学", grade: "", region: "north-america",country: "🇨🇦カナダ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "マギル大学", grade: "undergrad", region: "north-america",country: "🇨🇦カナダ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "イェール大学", grade: ["phd", "master"], region: "north-america",country: "🇺🇸アメリカ合衆国", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "イリノイ大学アーバナ・シャンペーン校", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "カリフォルニア大学サンタクルーズ校", grade: "", region: "north-america",country: "🇺🇸アメリカ合衆国", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ジョンズ・ホプキンス大学", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "スウァスモアカレッジ", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", img: "https://yusuke-nakama.github.io/University-Search/Swarthmore.jpeg", url: "#"},
-    {name: "ノースイースタン大学", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ノースウェスタン大学", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "プリンストン大学", grade: "", region: "north-america",country: "🇺🇸アメリカ合衆国", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ワシントン大学", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "アデレード大学", grade: ["undergrad", "master"], region: "oceania",country: "🇦🇺オーストラリア", img: "https://yusuke-nakama.github.io/University-Search/Adelaide.png", url: "#"},
-    {name: "オーストラリア国立大学", grade: "undergrad", region: "oceania",country: "🇦🇺オーストラリア", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "クィーンズランド大学", grade: ["undergrad", "master"], region: "oceania",country: "🇦🇺オーストラリア" ,img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "シドニー大学", grade:  ["undergrad", "master"], region: "oceania",country: "🇦🇺オーストラリア", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ニューサウスウェールズ大学", grade: "", region: "oceania",country: "🇦🇺オーストラリア", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "メルボルン大学", grade: "", region: "oceania",country: "🇦🇺オーストラリア", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "モナシュ大学", grade: ["undergrad", "master"], region: "oceania",country: "🇦🇺オーストラリア", img: "https://yusuke-nakama.github.io/University-Search/monash.jpg", url: "#"},
-    {name: "オークランド大学", grade: ["undergrad", "master"], region: "oceania",country: "🇳🇿ニュージーランド", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "オタゴ大学", grade: ["undergrad", "master"], region: "oceania",country: "🇳🇿ニュージーランド", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "コペンハーゲン大学", grade: ["undergrad", "master"], region: "europe",country: "🇩🇰デンマーク", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ヘルシンキ大学", grade: ["undergrad", "master"], region: "europe",country: "🇫🇮フィンランド", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "エコール・ポリテクニーク", grade: ["undergrad", "master"], region: "europe",country: "🇫🇷フランス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "グルノーブル・アルプ大学", grade: ["undergrad", "master"], region: "europe",country: "🇫🇷フランス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "EHESS（社会科学高等研究院）", grade: ["phd", "master"], region: "europe",country: "🇫🇷フランス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ストラスブール大学", grade: "", region: "europe",country: "🇫🇷フランス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "パリ政治学院", grade: ["undergrad", "master"], region: "europe",country: "🇫🇷フランス", img: "https://yusuke-nakama.github.io/University-Search/SC.jpeg", url: "#"},
-    {name: "ケルン大学", grade: "", region: "europe",country: "🇩🇪ドイツ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ベルリン自由大学", grade: "", region: "europe",country: "🇩🇪ドイツ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ボン大学", grade: ["undergrad", "master"], region: "europe",country: "🇩🇪ドイツ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ミュンヘン・ルートヴィヒ゠マクシミリアン大学", grade: "", region: "europe",country: "🇩🇪ドイツ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "トリニティ・カレッジ・ダブリン", grade: "", region: "europe",country: "🇮🇪アイルランド", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ユニバーシティ・カレッジ・ダブリン", grade: "", region: "europe",country: "🇮🇪アイルランド", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ローマ大学ラ・サピエンツァ", grade: "", region: "europe",country: "🇮🇹イタリア", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "フローニンゲン大学", grade: ["undergrad", "master"], region: "europe",country: "🇳🇱オランダ", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ライデン大学", grade: ["undergrad", "master"], region: "europe",country: "🇳🇱オランダ", img: "https://yusuke-nakama.github.io/University-Search/Leiden.png", url: "#"},
-    {name: "サンクトペテルブルク大学", grade: "", region: "europe",country: "🇷🇺ロシア", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "マドリード自治大学", grade: "", region: "europe",country: "🇪🇸スペイン", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ウプサラ大学", grade: "", region: "europe",country: "🇸🇪スウェーデン", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "スウェーデン王立工科大学", grade: "", region: "europe",country: "🇸🇪スウェーデン", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ストックホルム大学", grade: "", region: "europe",country: "🇸🇪スウェーデン", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ルンド大学", grade: ["undergrad", "master"], region: "europe",country: "🇸🇪スウェーデン", img: "https://yusuke-nakama.github.io/University-Search/Lund.jpg", url: "#"},
-    {name: "ジュネーヴ大学", grade: "", region: "europe",country: "🇨🇭スイス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "スイス連邦工科大学チューリッヒ", grade: "", region: "europe",country: "🇨🇭スイス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "チューリッヒ大学", grade: "", region: "europe",country: "🇨🇭スイス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ウォーリック大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "エセクター大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "グラスゴー大学", grade: ["undergrad", "master"], region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "サウサンプトン大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "シェフィールド大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ダラム大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/Durham.jpg", url: "#"},
-    {name: "マンチェスター大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ユニバーシティ・カレッジ・ロンドン", grade: ["undergrad", "master"], region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ロンドン大学東洋アフリカ学院", grade: ["undergrad", "master"], region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "ロンドン・スクール・オブ・エコノミクス・アンド・ポリティカル・サイエンス", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "国立陽明交通大学", grade: ["undergrad", "master","phd"], region: "asia", country: "🇹🇼台湾", strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "国立台湾大学", grade: ["undergrad", "master","phd"], region: "asia", country: "🇹🇼台湾", strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "アジア女性大学（AUW）", grade: "undergrad", region: "asia",country: "🇧🇩バングラデシュ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "上海交通大学", grade:  ["undergrad", "master"], region: "asia",country: "🇨🇳中国本土" ,strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "精華大学", grade: ["undergrad", "master","phd"], region: "asia", country: "🇨🇳中国本土" ,strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "浙江大学", grade: ["undergrad", "master","phd"], region: "asia",country: "🇨🇳中国本土" ,strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "南開大学", grade: ["undergrad", "master","phd"], region: "asia", country: "🇨🇳中国本土" ,strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "南京大学", grade: "undergrad", region: "asia", country: "🇨🇳中国本土" ,strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/Nanjing.jpg", url: "#"},
+    {name: "復旦大学", grade: "undergrad", region: "asia",country: "🇨🇳中国本土" , strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/Fudan.jpg", url: "#"},
+    {name: "北京大学", grade: ["undergrad", "master","phd"], region: "asia", country: "🇨🇳中国本土" ,strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "香港大学", grade: "undergrad", region: "asia",country: "🇭🇰香港特別行政区" , strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/HKU.jpg", url: "#"},
+    {name: "香港科技大学", grade: "undergrad", region: "asia",country: "🇭🇰香港特別行政区" , strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "O.Pジンダル・グローバル大学", grade: "undergrad", region: "asia", country: "🇮🇳インド",strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "インドネシア大学", grade: "undergrad", region: "asia", country: "🇮🇩インドネシア", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ガジャマダ大学", grade: ["undergrad", "master"], region: "asia",country: "🇮🇩インドネシア", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "高麗大学校（Korea University）", grade: ["undergrad", "master"], region: "asia",country: "🇰🇷韓国",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/Korea.jpg", url: "#"},
+    {name: "ソウル大学校", grade: ["undergrad", "master","phd"], region: "asia",country: "🇰🇷韓国",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/SNU.jpg", url: "#"},
+    {name: "浦項工科大学校（POSTECH）", grade: ["undergrad", "master","phd"], region: "asia",country: "🇰🇷韓国", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/POSTECH.jpg", url: "#"},
+    {name: "延世大学校", grade: ["undergrad", "master","phd"], region: "asia",country: "🇰🇷韓国",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "マラヤ大学", grade: ["undergrad", "master"], region: "asia",country: "🇲🇾マレーシア", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "フィリピン大学", grade: ["undergrad", "master"], region: "asia", country: "🇵🇭フィリピン",strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "シンガポール国立大学（National University of Singapore）", grade: "undergrad", region: "asia",country: "🇸🇬シンガポール", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "シンガポールマネジメント大学", grade: "undergrad", region: "asia",country: "🇸🇬シンガポール",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ナンヤン工科大学", grade: ["undergrad", "master","phd"], region: "asia",country: "🇸🇬シンガポール", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "チュラロンコン大学", grade: ["undergrad", "master","phd"], region: "asia",country: "🇹🇭タイ",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "サンパウロ大学", grade: ["undergrad", "master","phd"], region: "south-america",country: "🇧🇷ブラジル", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "チリ大学", grade: ["undergrad", "master"], region: "south-america",country: "🇨🇱チリ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "チリ・カトリック大学", grade: ["undergrad", "master"], region: "south-america",country: "🇨🇱チリ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "エル・コレヒオ・デ・メヒコ", grade: ["undergrad", "master","phd"], region: "latin-america",country: "🇲🇽メキシコ",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "メキシコ国立自治大学", grade: ["undergrad", "master","phd"], region: "latin-america",country: "🇲🇽メキシコ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "エルサレム・ヘブライ大学", grade: ["undergrad", "master","phd"], region: "middle-east",country: "🇮🇱イスラエル",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ボアジチ（ボスフォラス）大学", grade: ["undergrad", "master","phd"], region: "middle-east",country: "🇹🇷トルコ",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},    
+    {name: "ステレンボッシュ大学", grade: ["undergrad", "master","phd"], region: "africa",country: "🇿🇦南アフリカ",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "トロント大学", grade: ["undergrad", "master","phd"], region: "north-america",country: "🇨🇦カナダ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ビクトリア大学", grade: "undergrad", region: "north-america",country: "🇨🇦カナダ",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ブリティッシュ・コロンビア大学", grade: ["undergrad", "master","phd"], region: "north-america",country: "🇨🇦カナダ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "マギル大学", grade: "undergrad", region: "north-america",country: "🇨🇦カナダ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "イェール大学", grade: ["phd", "master"], region: "north-america",country: "🇺🇸アメリカ合衆国", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "イリノイ大学アーバナ・シャンペーン校", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "カリフォルニア大学サンタクルーズ校", grade: ["undergrad", "master","phd"], region: "north-america",country: "🇺🇸アメリカ合衆国", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ジョンズ・ホプキンス大学", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "スウァスモアカレッジ", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/Swarthmore.jpeg", url: "#"},
+    {name: "ノースイースタン大学", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ノースウェスタン大学", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "プリンストン大学", grade: ["undergrad", "master","phd"], region: "north-america",country: "🇺🇸アメリカ合衆国", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ワシントン大学", grade: "undergrad", region: "north-america",country: "🇺🇸アメリカ合衆国", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "アデレード大学", grade: ["undergrad", "master"], region: "oceania",country: "🇦🇺オーストラリア", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/Adelaide.png", url: "#"},
+    {name: "オーストラリア国立大学", grade: "undergrad", region: "oceania",country: "🇦🇺オーストラリア",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "クィーンズランド大学", grade: ["undergrad", "master"], region: "oceania",country: "🇦🇺オーストラリア" ,strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "シドニー大学", grade:  ["undergrad", "master"], region: "oceania",country: "🇦🇺オーストラリア", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ニューサウスウェールズ大学", grade: ["undergrad", "master","phd"], region: "oceania",country: "🇦🇺オーストラリア", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "メルボルン大学", grade: ["undergrad", "master","phd"], region: "oceania",country: "🇦🇺オーストラリア",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "モナシュ大学", grade: ["undergrad", "master"], region: "oceania",country: "🇦🇺オーストラリア", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/monash.jpg", url: "#"},
+    {name: "オークランド大学", grade: ["undergrad", "master"], region: "oceania",country: "🇳🇿ニュージーランド", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "オタゴ大学", grade: ["undergrad", "master"], region: "oceania",country: "🇳🇿ニュージーランド",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "コペンハーゲン大学", grade: ["undergrad", "master"], region: "europe",country: "🇩🇰デンマーク",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ヘルシンキ大学", grade: ["undergrad", "master"], region: "europe",country: "🇫🇮フィンランド", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "エコール・ポリテクニーク", grade: ["undergrad", "master"], region: "europe",country: "🇫🇷フランス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "グルノーブル・アルプ大学", grade: ["undergrad", "master"], region: "europe",country: "🇫🇷フランス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "EHESS（社会科学高等研究院）", grade: ["phd", "master"], region: "europe",country: "🇫🇷フランス",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ストラスブール大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇫🇷フランス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "パリ政治学院", grade: ["undergrad", "master"], region: "europe",country: "🇫🇷フランス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/SC.jpeg", url: "#"},
+    {name: "ケルン大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇩🇪ドイツ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ベルリン自由大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇩🇪ドイツ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ボン大学", grade: ["undergrad", "master"], region: "europe",country: "🇩🇪ドイツ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ミュンヘン・ルートヴィヒ゠マクシミリアン大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇩🇪ドイツ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "トリニティ・カレッジ・ダブリン", grade: ["undergrad", "master","phd"], region: "europe",country: "🇮🇪アイルランド", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ユニバーシティ・カレッジ・ダブリン", grade: ["undergrad", "master","phd"], region: "europe",country: "🇮🇪アイルランド",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ローマ大学ラ・サピエンツァ", grade: ["undergrad", "master","phd"], region: "europe",country: "🇮🇹イタリア",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "フローニンゲン大学", grade: ["undergrad", "master"], region: "europe",country: "🇳🇱オランダ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ライデン大学", grade: ["undergrad", "master"], region: "europe",country: "🇳🇱オランダ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/Leiden.png", url: "#"},
+    {name: "サンクトペテルブルク大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇷🇺ロシア", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "マドリード自治大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇪🇸スペイン", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ウプサラ大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇸🇪スウェーデン", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "スウェーデン王立工科大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇸🇪スウェーデン", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ストックホルム大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇸🇪スウェーデン", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ルンド大学", grade: ["undergrad", "master"], region: "europe",country: "🇸🇪スウェーデン", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/Lund.jpg", url: "#"},
+    {name: "ジュネーヴ大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇨🇭スイス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "スイス連邦工科大学チューリッヒ", grade: ["undergrad", "master","phd"], region: "europe",country: "🇨🇭スイス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "チューリッヒ大学", grade: ["undergrad", "master","phd"], region: "europe",country: "🇨🇭スイス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ウォーリック大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "エセクター大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "グラスゴー大学", grade: ["undergrad", "master"], region: "europe",country: "🇬🇧イギリス",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "サウサンプトン大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "シェフィールド大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ダラム大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/Durham.jpg", url: "#"},
+    {name: "マンチェスター大学", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ユニバーシティ・カレッジ・ロンドン", grade: ["undergrad", "master"], region: "europe",country: "🇬🇧イギリス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ロンドン大学東洋アフリカ学院", grade: ["undergrad", "master"], region: "europe",country: "🇬🇧イギリス",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "ロンドン・スクール・オブ・エコノミクス・アンド・ポリティカル・サイエンス", grade: "undergrad", region: "europe",country: "🇬🇧イギリス", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
  ];
 
 function shuffleArray(arr) {
@@ -411,18 +483,109 @@ function shuffleArray(arr) {
   return array;
 }
 
-function searchUniversities() {
-  const grade = document.getElementById("grade").value;
-  const region = document.getElementById("region").value;
-  const country = document.getElementById("country").value;
-  const enableStrength = document.getElementById("enableStrengthSearch").checked;
-  const selectedStrengths = enableStrength ? Array.from(document.querySelectorAll(".strength:checked")).map(cb => cb.value) : [];
+document.addEventListener("DOMContentLoaded", () => {
+  // 地域選択に応じて国リスト更新
+  const regionOptions = document.querySelectorAll(".region");
+  regionOptions.forEach(cb => {
+    cb.addEventListener("change", updateCountryOptions);
+  });
+});
 
+function updateCountryOptions() {
+  const countryContainer = document.getElementById("country-container");
+  const countryOptions = document.getElementById("country-options");
+
+  const selectedRegions = Array.from(document.querySelectorAll(".region:checked"))
+                              .map(cb => cb.value);
+
+  // まず国リストをリセット
+  countryOptions.innerHTML = "";
+
+  // 地域が未選択 → 国選択UIを隠す
+  if (selectedRegions.length === 0) {
+    countryContainer.style.display = "none";
+    return;
+  }
+
+  // 地域が選択されている → 国選択UIを表示
+  countryContainer.style.display = "block";
+
+  let countries = [];
+  selectedRegions.forEach(region => {
+    if (countriesByRegion[region]) {
+      countries = countries.concat(countriesByRegion[region]);
+    }
+  });
+
+  // 国リストを描画
+  countries.forEach(c => {
+    const label = document.createElement("label");
+    label.className = "chip";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.className = "country";
+    input.value = c;
+    const span = document.createElement("span");
+    span.textContent = c;
+
+    label.appendChild(input);
+    label.appendChild(span);
+    countryOptions.appendChild(label);
+  });
+}
+
+
+function searchUniversities() {
+  let valid = true;
+
+  // すべてのエラーメッセージをリセット
+  document.querySelectorAll(".error-msg").forEach(e => {
+    e.style.display = "none";
+    e.textContent = "";
+  });
+
+  const grade = document.getElementById("grade").value;
+  const selectedRegions = Array.from(document.querySelectorAll(".region:checked")).map(cb => cb.value);
+  const selectedCountries = Array.from(document.querySelectorAll(".country:checked")).map(cb => cb.value);
+  const selectedStrengths = Array.from(document.querySelectorAll(".strength:checked")).map(cb => cb.value);
+
+  // 所属課程
+  if (grade === "") {
+    document.getElementById("grade-error").textContent = "所属課程が未入力です";
+    document.getElementById("grade-error").style.display = "block";
+    valid = false;
+  }
+
+  // 地域
+  if (selectedRegions.length === 0) {
+    document.getElementById("region-error").textContent = "一つ以上の地域を選択してください";
+    document.getElementById("region-error").style.display = "block";
+    valid = false;
+  }
+
+  // 国
+  if (document.getElementById("country-container").style.display !== "none" && selectedCountries.length === 0) {
+    document.getElementById("country-error").textContent = "一つ以上の国を選択してください";
+    document.getElementById("country-error").style.display = "block";
+    valid = false;
+  }
+
+  // 強み
+  if (selectedStrengths.length === 0) {
+    document.getElementById("strength-error").textContent = "一つ以上の強みを選択してください";
+    document.getElementById("strength-error").style.display = "block";
+    valid = false;
+  }
+
+  // 入力エラーがある場合 → 結果画面に遷移しない
+  if (!valid) return;
+
+  // フィルタリング処理（既存のロジック）
   const filtered = universities.filter(u => {
-    const gradeMatch = grade === "" || u.grade === "" || (Array.isArray(u.grade) ? u.grade.includes(grade) : u.grade === grade);
-    const regionMatch = region === "" || u.region === "" || u.region === region;
-    const countryMatch = country === "" || u.country === "" || u.country === country;
-    const strengthMatch = !enableStrength || selectedStrengths.every(str => u.strengths.includes(str));
+    const gradeMatch = grade === "" || (Array.isArray(u.grade) ? u.grade.includes(grade) : u.grade === grade);
+    const regionMatch = selectedRegions.length === 0 || selectedRegions.includes(u.region);
+    const countryMatch = selectedCountries.length === 0 || selectedCountries.includes(u.country);
+    const strengthMatch = selectedStrengths.length === 0 || selectedStrengths.some(str => u.strengths.includes(str));
     return gradeMatch && regionMatch && countryMatch && strengthMatch;
   });
 
