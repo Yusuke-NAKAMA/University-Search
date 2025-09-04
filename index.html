@@ -412,7 +412,7 @@ const universities = [
     {name: "チリ・カトリック大学", grade: ["undergrad", "master"], region: "south-america",country: "🇨🇱チリ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
     {name: "エル・コレヒオ・デ・メヒコ", grade: ["undergrad", "master","phd"], region: "latin-america",country: "🇲🇽メキシコ",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
     {name: "メキシコ国立自治大学", grade: ["undergrad", "master","phd"], region: "latin-america",country: "🇲🇽メキシコ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
-    {name: "エルサレム・ヘブライ大学", grade: ["undergrad", "master","phd"], region: "middle-east",country: "🇮🇱イスラエル",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
+    {name: "エルサレム・ヘブライ大学", grade: ["undergrad", "master","phd"], region: "middle-east",country: "🇮🇱イスラエル",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/HUJ.jpg", url: "#"},
     {name: "ボアジチ（ボスフォラス）大学", grade: ["undergrad", "master","phd"], region: "middle-east",country: "🇹🇷トルコ",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},    
     {name: "ステレンボッシュ大学", grade: ["undergrad", "master","phd"], region: "africa",country: "🇿🇦南アフリカ",strengths: ["engineering"], img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
     {name: "トロント大学", grade: ["undergrad", "master","phd"], region: "north-america",country: "🇨🇦カナダ", strengths: ["engineering"],img: "https://yusuke-nakama.github.io/University-Search/No.png", url: "#"},
@@ -491,6 +491,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  // 地域選択に応じて国リスト更新
+  const regionOptions = document.querySelectorAll(".region");
+  regionOptions.forEach(cb => {
+    cb.addEventListener("change", updateCountryOptions);
+  });
+});
+
 function updateCountryOptions() {
   const countryContainer = document.getElementById("country-container");
   const countryOptions = document.getElementById("country-options");
@@ -498,7 +506,12 @@ function updateCountryOptions() {
   const selectedRegions = Array.from(document.querySelectorAll(".region:checked"))
                               .map(cb => cb.value);
 
-  // まず国リストをリセット
+  // 現在選択されている国を保存
+  const previouslySelected = Array.from(
+    document.querySelectorAll(".country:checked")
+  ).map(cb => cb.value);
+
+  // 国リストをリセット
   countryOptions.innerHTML = "";
 
   // 地域が未選択 → 国選択UIを隠す
@@ -517,14 +530,21 @@ function updateCountryOptions() {
     }
   });
 
-  // 国リストを描画
+  // 国リストを描画（必要に応じて選択状態を復元）
   countries.forEach(c => {
     const label = document.createElement("label");
     label.className = "chip";
+
     const input = document.createElement("input");
     input.type = "checkbox";
     input.className = "country";
     input.value = c;
+
+    // 過去に選択されていて、かつ有効な国ならチェック復元
+    if (previouslySelected.includes(c)) {
+      input.checked = true;
+    }
+
     const span = document.createElement("span");
     span.textContent = c;
 
